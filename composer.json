@@ -1,0 +1,21 @@
+{
+    "name": "yuzl/hwcdnsdk",
+    "description": "huawei cdh api SDK unofficial",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "logwood.yu",
+            "email": "logwood.yu@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "guzzlehttp/guzzle": "6.5.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Hwcdn\\Apiv1\\": "src/Hwcdn/Apiv1"
+        }
+    }
+}
