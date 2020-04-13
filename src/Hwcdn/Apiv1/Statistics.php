@@ -2,6 +2,7 @@
 
 namespace Hwcdn\Apiv1;
 
+use Ark\Filecache\FileCache;
 use GuzzleHttp\Client;
 
 class Statistics
@@ -13,37 +14,67 @@ class Statistics
      */
     const TOKEN_URL = "https://iam.myhuaweicloud.com/v3/auth/tokens";
 
+    /**
+     * @var string token
+     */
     private $token = '';
+    /**
+     * @var FileCache|null
+     */
+    protected $cacheHandle = null;
+
+    protected $account = [];
+
+    /**
+     * Statistics constructor.
+     * @param string$cachePath 缓存路径
+     * @param int $expire 有效期
+     */
+    public function __construct($account, $cachePath, $expire)
+    {
+        $this->account = $account;
+        $this->cacheHandle = new FileCache(
+            [
+                'root' => $cachePath,
+                'ttl' => $expire,
+                'compress' => false,
+                'serialize' => 'json',
+            ]
+        );
+    }
 
     /**
      * 功    能：getToken
      * 修改日期：2020/4/13
      *
      * @desc 补充描述
-     * @param string $userName 用户名
-     * @param string $password 密码
-     * @param string $domainName 父账号
      * @return mixed
      */
-    public function getToken($userName, $password, $domainName)
+    public function getToken()
     {
+        // cache token
+        $token = $this->cacheHandle->get('token');
+        if ($token) {
+            $this->token = $token;
+            return $token;
+        }
         $body = [
             "auth" => [
                 "identity" => [
                     "methods" => ["password"],
                     "password" => [
                         "user" => [
-                            "name" => $userName,
-                            "password" => $password,
+                            "name" => $this->account['user'],
+                            "password" => $this->account['pass'],
                             "domain" => [
-                                "name" => $domainName
+                                "name" => $this->account['domainName']
                             ]
                         ]
                     ]
                 ],
                 "scope" => [
                     "domain" => [
-                        "name" => $domainName
+                        "name" => $this->account['domainName']
                     ]
                 ]
             ],
@@ -63,6 +94,7 @@ class Statistics
         }
         if ($subjectToken && isset($subjectToken)) {
             $this->token = $subjectToken[0];
+            $this->cacheHandle->set('token', $subjectToken[0]);
             return $subjectToken[0];
         }
         return false;
@@ -82,8 +114,8 @@ class Statistics
     public function bandwidth($domain_name, $start_time = '', $end_time = '', $enterprise_project_id = 'all')
     {
         $params = [
-            'start_time' => $start_time,
-            'end_time' => $end_time,
+            'start_time' => $start_time * 1000,
+            'end_time' => $end_time * 1000,
             'domain_name' => $domain_name,
             'enterprise_project_id' => $enterprise_project_id,
         ];
@@ -91,7 +123,7 @@ class Statistics
             $client = new Client([
                 'base_uri' => self::BASE_URL,
                 'headers' => [
-                    'x-auth-token' => $this->token
+                    'x-auth-token' => $this->getToken()
                 ],
             ]);
             $body = $client->get('bandwidth', [
@@ -118,8 +150,8 @@ class Statistics
     public function bandWidthDetail($domain_name, $start_time = '', $end_time = '', $interval = '300', $enterprise_project_id = 'all')
     {
         $params = [
-            'start_time' => $start_time,
-            'end_time' => $end_time,
+            'start_time' => $start_time * 1000,
+            'end_time' => $end_time * 1000,
             'domain_name' => $domain_name,
             'interval' => $interval,
             'enterprise_project_id' => $enterprise_project_id,
@@ -128,7 +160,7 @@ class Statistics
             $client = new Client([
                 'base_uri' => self::BASE_URL,
                 'headers' => [
-                    'x-auth-token' => $this->token
+                    'x-auth-token' => $this->getToken()
                 ],
             ]);
             $body = $client->get('bandwidth-detail', [
@@ -156,8 +188,8 @@ class Statistics
     public function domainSummary($domain_name, $start_time = '', $end_time = '', $stat_type = 'bw', $interval = '300', $enterprise_project_id = 'all')
     {
         $params = [
-            'start_time' => $start_time,
-            'end_time' => $end_time,
+            'start_time' => $start_time * 1000,
+            'end_time' => $end_time * 1000,
             'domain_name' => $domain_name,
             'stat_type' => $stat_type,
             'interval' => $interval,
@@ -167,7 +199,7 @@ class Statistics
             $client = new Client([
                 'base_uri' => self::BASE_URL,
                 'headers' => [
-                    'x-auth-token' => $this->token
+                    'x-auth-token' => $this->getToken()
                 ],
             ]);
             $body = $client->get('domain-summary', [
@@ -195,8 +227,8 @@ class Statistics
     public function domainSummaryDetail($domain_name, $start_time = '', $end_time = '', $stat_type = 'bw', $interval = '300', $enterprise_project_id = 'all')
     {
         $params = [
-            'start_time' => $start_time,
-            'end_time' => $end_time,
+            'start_time' => $start_time * 1000,
+            'end_time' => $end_time * 1000,
             'domain_name' => $domain_name,
             'stat_type' => $stat_type,
             'interval' => $interval,
@@ -206,7 +238,7 @@ class Statistics
             $client = new Client([
                 'base_uri' => self::BASE_URL,
                 'headers' => [
-                    'x-auth-token' => $this->token
+                    'x-auth-token' => $this->getToken()
                 ],
             ]);
             $body = $client->get('domain-summary-detail', [
