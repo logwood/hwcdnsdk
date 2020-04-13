@@ -1,6 +1,7 @@
 {
     "name": "logwood/hwcdnsdk",
     "description": "huawei cdh api SDK unofficial",
+    "version": "1.0.0",
     "type": "library",
     "license": "MIT",
     "authors": [
