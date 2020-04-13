@@ -1,5 +1,5 @@
 {
-    "name": "yuzl/hwcdnsdk",
+    "name": "logwood/hwcdnsdk",
     "description": "huawei cdh api SDK unofficial",
     "type": "library",
     "license": "MIT",
